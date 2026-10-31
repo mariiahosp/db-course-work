@@ -107,7 +107,7 @@ export class UsersService {
     return { id, deleted: true }
   }
 
-  private rethrowUniqueEmail(error: unknown) {
+  private rethrowUniqueEmail(error: unknown): never {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'

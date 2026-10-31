@@ -60,17 +60,18 @@ export const useAuthStore = create<AuthState>()(
         get().setSession(session)
       },
       registerRequest: async (dto) => {
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dto),
         })
 
         if (!response.ok) {
-          throw new Error('Failed to register user')
+          throw new Error(await readErrorMessage(response, 'Failed to register user'))
         }
 
-        await get().loginRequest(dto.email, dto.password)
+        const session = (await response.json()) as AuthSession
+        get().setSession(session)
       },
       logout: async () => {
         const refreshToken = get().refreshToken
@@ -96,3 +97,18 @@ export const useAuthStore = create<AuthState>()(
     { name: 'auth' },
   ),
 )
+
+async function readErrorMessage(response: Response, fallback: string) {
+  const body = (await response.json().catch(() => null)) as { message?: unknown } | null
+  const message = body?.message
+
+  if (typeof message === 'string') {
+    return message
+  }
+
+  if (Array.isArray(message) && typeof message[0] === 'string') {
+    return message[0]
+  }
+
+  return fallback
+}

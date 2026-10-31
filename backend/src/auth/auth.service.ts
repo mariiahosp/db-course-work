@@ -2,8 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
+import { Role } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -20,7 +23,24 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly users: UsersService,
   ) {}
+
+  async register(dto: RegisterDto) {
+    const user = await this.users.create({
+      name: dto.name,
+      email: dto.email.toLowerCase(),
+      password: dto.password,
+      role: Role.CUSTOMER,
+    });
+
+    return this.issueTokens({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
+  }
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
