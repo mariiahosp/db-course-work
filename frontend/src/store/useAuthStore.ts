@@ -22,6 +22,12 @@ type AuthState = {
   refreshToken: string | null
   setSession: (session: AuthSession) => void
   loginRequest: (email: string, password: string) => Promise<void>
+  registerRequest: (dto: {
+    name: string
+    email: string
+    phone: string
+    password: string
+  }) => Promise<void>
   logout: () => Promise<void>
   clearSession: () => void
 }
@@ -53,6 +59,19 @@ export const useAuthStore = create<AuthState>()(
 
         const session = (await response.json()) as AuthSession
         get().setSession(session)
+      },
+      registerRequest: async (dto) => {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dto),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to register user')
+        }
+
+        await get().loginRequest(dto.email, dto.password)
       },
       logout: async () => {
         const refreshToken = get().refreshToken
