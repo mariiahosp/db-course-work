@@ -53,6 +53,12 @@
     font-size: 14px;
   }
 
+  &__field-error {
+    margin: 6px 0 0;
+    color: #ff6e6e;
+    font-size: 12px;
+  }
+
   &__login {
     text-align: center;
     font-size: 16px;

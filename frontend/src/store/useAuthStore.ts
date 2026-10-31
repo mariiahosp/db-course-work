@@ -25,7 +25,6 @@ type AuthState = {
   registerRequest: (dto: {
     name: string
     email: string
-    phone: string
     password: string
   }) => Promise<void>
   logout: () => Promise<void>

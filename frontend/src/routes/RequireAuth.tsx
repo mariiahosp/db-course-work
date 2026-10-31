@@ -13,7 +13,7 @@ export const RequireAuth = () => {
 
 export const GuestOnly = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-console.log('isAuthenticated', isAuthenticated)
+
   if (isAuthenticated) {
     return <Navigate to="/users" replace />;
   }

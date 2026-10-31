@@ -1,47 +1,68 @@
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
 import { NavLink } from "react-router-dom";
-import "../auth-form.scss";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useState, type FormEvent } from "react";
+import { loginSchema, type LoginFormValues } from "../auth.schema";
+import "../auth-form.scss";
 
 export const LoginPage = () => {
   const loginRequest = useAuthStore((state) => state.loginRequest);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-
-    const form = new FormData(event.currentTarget);
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
-      await loginRequest(String(form.get('email')), String(form.get('password')));
+      await loginRequest(values.email, values.password);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to login');
+      setError("root", {
+        message: error instanceof Error ? error.message : "Failed to login",
+      });
     }
-  }
+  };
+
   return (
     <div className="register-container">
-      <form
-        className="form"
-        onSubmit={onSubmit}
-      >
+      <form className="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="form__item">
           <label htmlFor="login-email" className="form__label">
             Email
           </label>
-          <input id="login-email" name="email" type="email" className="form__input" />
+          <input
+            id="login-email"
+            type="email"
+            className="form__input"
+            aria-invalid={errors.email ? true : undefined}
+            {...register("email")}
+          />
+          {errors.email && <p className="form__field-error">{errors.email.message}</p>}
         </div>
 
         <div className="form__item">
           <label htmlFor="login-password" className="form__label">
             Password
           </label>
-          <input id="login-password" name="password" type="password" className="form__input" />
+          <input
+            id="login-password"
+            type="password"
+            className="form__input"
+            aria-invalid={errors.password ? true : undefined}
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className="form__field-error">{errors.password.message}</p>
+          )}
         </div>
 
-        {error && <p className="form__error">{error}</p>}
+        {errors.root && <p className="form__error">{errors.root.message}</p>}
 
-        <button className="form__sumbit" type="submit">
+        <button className="form__sumbit" type="submit" disabled={isSubmitting}>
           Login
         </button>
 

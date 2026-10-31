@@ -20,14 +20,13 @@ export const UsersPage = () => {
     <>
       <div className="table-wrapper">
         <Table
-          headers={["Email", "Name", "Phone", "Role", "Created At", "Updated At"]}
+          headers={["Email", "Name", "Role", "Created At", "Updated At"]}
         >
           {users.map(
-            ({ id, email, name, phone, role, createdAt, updatedAt }) => (
+            ({ id, email, name, role, createdAt, updatedAt }) => (
               <tr key={id} className="products__table--body--tr">
                 <td className="products__table--body--tr--td">{email}</td>
                 <td className="products__table--body--tr--td">{name}</td>
-                <td className="products__table--body--tr--td">{phone}</td>
                 <td className="products__table--body--tr--td">{role.charAt(0).toUpperCase() + role.slice(1)}</td>
                 <td className="products__table--body--tr--td">
                   {new Date(createdAt).toLocaleString()}
