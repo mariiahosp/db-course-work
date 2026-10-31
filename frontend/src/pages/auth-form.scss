@@ -1,0 +1,66 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 0 40px;
+}
+
+.form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__label {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  &__input {
+    height: 41px;
+    width: 300px;
+    border: 1px solid #898989;
+    border-radius: 10px;
+    padding: 10px;
+    font-family: "Poppins", sans-serif;
+  }
+
+  &__sumbit {
+    height: 41px;
+    border-radius: 10px;
+    border: none;
+    background-color: #5397f5;
+    color: white;
+    padding: 10px;
+    font-family: "Poppins", sans-serif;
+
+    &:hover {
+      background-color: #007bff;
+      cursor: pointer;
+    }
+  }
+
+  &__login {
+    text-align: center;
+    font-size: 16px;
+
+    &--blue {
+      color: #5397f5;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+
+      &:hover {
+        color: #007bff;
+      }
+    }
+  }
+}

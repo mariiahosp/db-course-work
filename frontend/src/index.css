@@ -5,6 +5,14 @@
   font-family: "Poppins", sans-serif;
 }
 
+html,
+body,
+#root {
+  background-color: #ffffff;
+  color: #000000;
+  min-height: 100%;
+}
+
 @font-face {
   font-family: 'KaushanScript';
   src: url('./assets/fonts/KaushanScript-Regular.ttf');

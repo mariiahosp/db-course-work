@@ -15,7 +15,7 @@ export const Header = () => {
           <p className="header__logo--title">Awesome Store</p>
         </div>
 
-        {isAuthenticated && (
+        {isAuthenticated ? (
           <div className="header__list">
           <NavLink 
             to='/users' 
@@ -43,6 +43,21 @@ export const Header = () => {
             My Profile
           </NavLink>
         </div>
+        ) : (
+          <div className="header__list">
+            <NavLink
+              to="/login"
+              className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
+            >
+              Login
+            </NavLink>
+            <NavLink
+              to="/register"
+              className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
+            >
+              Register
+            </NavLink>
+          </div>
         )}
       </header>
     </>
