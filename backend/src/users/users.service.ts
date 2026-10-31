@@ -10,7 +10,6 @@ const publicUserSelect = {
   id: true,
   email: true,
   name: true,
-  phone: true,
   role: true,
   createdAt: true,
   updatedAt: true,
@@ -58,7 +57,6 @@ export class UsersService {
           email: dto.email,
           passwordHash: await bcrypt.hash(dto.password, 10),
           name: dto.name,
-          phone: dto.phone,
           role: dto.role ?? Role.CUSTOMER,
         },
         select: publicUserSelect,
@@ -74,7 +72,6 @@ export class UsersService {
     if (dto.email !== undefined) data.email = dto.email.toLowerCase();
     if (dto.password !== undefined) data.passwordHash = await bcrypt.hash(dto.password, 10);
     if (dto.name !== undefined) data.name = dto.name;
-    if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.role !== undefined) data.role = dto.role;
 
     if (Object.keys(data).length === 0) {

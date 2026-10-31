@@ -15,11 +15,6 @@ export class CreateUserDto {
   @MaxLength(100)
   name!: string;
 
-  @IsString()
-  @MinLength(5)
-  @MaxLength(20)
-  phone!: string;
-
   @IsOptional()
   @IsEnum(Role)
   role?: Role;

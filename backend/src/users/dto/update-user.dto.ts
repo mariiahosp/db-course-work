@@ -19,12 +19,6 @@ export class UpdateUserDto {
   name?: string;
 
   @IsOptional()
-  @IsString()
-  @MinLength(5)
-  @MaxLength(20)
-  phone?: string;
-
-  @IsOptional()
   @IsEnum(Role)
   role?: Role;
 }
