@@ -114,4 +114,37 @@ export class OrdersService {
       })
     })
   }
+
+  async remove(id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id },
+        include: { payment: true }
+      })
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.status !== OrderStatus.CANCELLED || order.payment?.status !== PaymentStatus.PENDING) {
+        throw new BadRequestException('Only a cancelled unpaid order can be deleted');
+      }
+
+      const deletedOrder = await tx.order.deleteMany({
+        where: {
+          id,
+          status: OrderStatus.CANCELLED,
+          payment: {
+            status: PaymentStatus.PENDING,
+          }
+        }
+      })
+
+      if (deletedOrder.count !== 1) {
+        throw new ConflictException('Order was updated by someone else');
+      }
+
+      return { id, deleted: true }
+    })
+  }
 }
