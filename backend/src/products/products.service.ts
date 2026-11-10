@@ -4,6 +4,7 @@ import { QueryProductsDto } from './dto/query-product.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ChangePriceDto } from './dto/change-price.dto';
 
 const productInclude = {
   category: { select: { id: true, name: true, slug: true } },
@@ -93,6 +94,52 @@ export class ProductsService {
     } catch (error) {
       this.rethrowKnown(error);
     }
+  }
+
+  async changePrice(id: string, userId: string, dto: ChangePriceDto) {
+    return this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id } });
+
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      if (product.version !== dto.version) {
+        throw new ConflictException('Product was updated by someone else');
+      }
+
+      const newPrice = new Prisma.Decimal(dto.price);
+
+      if (product.price.equals(newPrice)) {
+        throw new BadRequestException('Price is unchanged');
+      }
+
+      const updated = await tx.product.updateMany({
+        where: { id, version: dto.version },
+        data: {
+          price: newPrice,
+          version: { increment: 1 },
+        },
+      });
+
+      if (updated.count !== 1) {
+        throw new ConflictException('Product was updated by someone else');
+      }
+
+      await tx.priceHistory.create({
+        data: {
+          productId: id,
+          changedById: userId,
+          oldPrice: product.price,
+          newPrice,
+        },
+      });
+
+      return tx.product.findUnique({
+        where: { id },
+        include: productInclude,
+      });
+    });
   }
 
   private rethrowKnown(error: unknown): never {

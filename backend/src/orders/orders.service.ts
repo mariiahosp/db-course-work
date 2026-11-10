@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PaymentStatus, Prisma } from 'src/generated/prisma/client';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { OrderStatus, PaymentStatus, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 const orderInclude = {
   items: {
@@ -70,6 +71,47 @@ export class OrdersService {
         include: orderInclude,
       });
     });
+  }
 
+  async updateStatus(id: string, dto: UpdateOrderStatusDto) {
+    const transitions: Record<OrderStatus, OrderStatus[]> = {
+      PLACED: [OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED],
+      IN_TRANSIT: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+      DELIVERED: [],
+      CANCELLED: [],
+    };
+
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id } });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.version !== dto.version) {
+        throw new ConflictException('Order was updated by someone else');
+      }
+
+      if (!transitions[order.status].includes(dto.status)) {
+        throw new BadRequestException(`Cannot change status from ${order.status} to ${dto.status}`);
+      }
+
+      const updatedOrder = await tx.order.updateMany({
+        where: { id, version: dto.version },
+        data: {
+          status: dto.status,
+          version: { increment: 1 },
+        }
+      })
+
+      if (updatedOrder.count !== 1) {
+        throw new ConflictException('Order was updated by someone else');
+      }
+
+      return tx.order.findUnique({
+        where: { id },
+        include: orderInclude,
+      })
+    })
   }
 }
