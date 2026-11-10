@@ -11,6 +11,40 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coursework"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coursework-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3031
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/coursework?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-coursework-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-coursework-refresh-secret}
+    ports:
+      - "3031:3031"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3031/api').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
 volumes:
   postgres_data:
