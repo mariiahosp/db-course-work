@@ -6,9 +6,9 @@ export type CatalogCategory = {
 };
 
 export const categories: CatalogCategory[] = [
-  { id: "cat-laptops", name: "Laptops", slug: "laptops", imageUrl: "https://picsum.photos/seed/laptops/640/480" },
-  { id: "cat-phones", name: "Phones", slug: "phones", imageUrl: "https://picsum.photos/seed/phones/640/480" },
-  { id: "cat-audio", name: "Audio", slug: "audio", imageUrl: null },
+  { id: "cat-laptops", name: "Laptops", slug: "laptops", imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=640&h=480&q=80" },
+  { id: "cat-phones", name: "Phones", slug: "phones", imageUrl: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=640&h=480&q=80" },
+  { id: "cat-audio", name: "Audio", slug: "audio", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=640&h=480&q=80" },
 ];
 
 export type CatalogProduct = {
@@ -33,7 +33,7 @@ export const products: CatalogProduct[] = [
     price: 1999,
     stock: 12,
     isActive: true,
-    imageUrl: "https://picsum.photos/seed/macbook/640/480",
+    imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=640&h=480&q=80",
   },
   {
     id: "prod-air",
@@ -44,7 +44,7 @@ export const products: CatalogProduct[] = [
     price: 1099,
     stock: 20,
     isActive: true,
-    imageUrl: "https://picsum.photos/seed/air/640/480",
+    imageUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=640&h=480&q=80",
   },
   {
     id: "prod-iphone",
@@ -55,7 +55,7 @@ export const products: CatalogProduct[] = [
     price: 799,
     stock: 30,
     isActive: true,
-    imageUrl: "https://picsum.photos/seed/iphone/640/480",
+    imageUrl: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=640&h=480&q=80",
   },
   {
     id: "prod-airpods",
@@ -66,7 +66,7 @@ export const products: CatalogProduct[] = [
     price: 249,
     stock: 40,
     isActive: false,
-    imageUrl: null,
+    imageUrl: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=640&h=480&q=80",
   },
 ];
 
