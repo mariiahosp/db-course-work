@@ -23,6 +23,12 @@ export const Header = () => {
           >
             Users
           </NavLink>
+          <NavLink
+            to="/categories"
+            className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
+          >
+            Categories
+          </NavLink>
           <NavLink 
             to='/products' 
             className={({ isActive }) => (isActive ? 'header__list--link active-link' : 'header__list--link')}

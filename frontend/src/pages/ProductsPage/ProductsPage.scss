@@ -1,0 +1,47 @@
+.catalog {
+  width: 100%;
+  align-self: stretch;
+  padding: 24px 40px 40px;
+
+  &__head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 19px;
+  }
+
+  &__add {
+    background-color: #5397f5;
+    border: none;
+    color: white;
+    padding-block: 7.5px;
+    padding-inline: 10px;
+    border-radius: 10px;
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+    line-height: 28px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  &__empty {
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+  }
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+
+  &--svg {
+    width: 25px;
+    height: 25px;
+    stroke: #5397f5;
+  }
+}

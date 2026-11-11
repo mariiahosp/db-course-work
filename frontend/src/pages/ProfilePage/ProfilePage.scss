@@ -1,0 +1,33 @@
+.profile-page {
+  width: 100%;
+  align-self: stretch;
+  padding: 24px 40px 40px;
+
+  &__card {
+    max-width: 420px;
+    border: 1px solid #898989;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__title {
+    font-family: "RobotoBold", sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+  }
+
+  &__label {
+    font-family: "RobotoBold", sans-serif;
+  }
+}
