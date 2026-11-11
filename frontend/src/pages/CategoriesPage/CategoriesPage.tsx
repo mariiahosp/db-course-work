@@ -1,23 +1,24 @@
 import { useState } from "react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
+import { CatalogCard } from "../../components/CatalogCard/CatalogCard";
 import { Input } from "../../components/Input/Input";
 import { Modal } from "../../components/Modal/Modal";
-import { Table } from "../../components/Table/Table";
-import { categories as seedCategories } from "../../mocks/catalog";
+import { type CatalogCategory } from "../../mocks/catalog";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useCatalogStore } from "../../store/useCatalogStore";
 import { RoleEnum } from "../../types/user";
 import "../ProductsPage/ProductsPage.scss";
 
-type Category = (typeof seedCategories)[number];
-
 export const CategoriesPage = () => {
   const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
+  const items = useCatalogStore((state) => state.categories);
+  const upsertCategory = useCatalogStore((state) => state.upsertCategory);
   const [query, setQuery] = useState("");
-  const [items, setItems] = useState<Category[]>(seedCategories);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [formError, setFormError] = useState("");
 
   const visibleCategories = items.filter((category) =>
@@ -28,14 +29,16 @@ export const CategoriesPage = () => {
     setEditingId(null);
     setName("");
     setSlug("");
+    setImageUrl("");
     setFormError("");
     setIsFormOpen(true);
   };
 
-  const openEdit = (category: Category) => {
+  const openEdit = (category: CatalogCategory) => {
     setEditingId(category.id);
     setName(category.name);
     setSlug(category.slug);
+    setImageUrl(category.imageUrl ?? "");
     setFormError("");
     setIsFormOpen(true);
   };
@@ -53,13 +56,12 @@ export const CategoriesPage = () => {
       return;
     }
 
-    setItems((current) =>
-      editingId
-        ? current.map((category) =>
-            category.id === editingId ? { ...category, name: nextName, slug: nextSlug } : category,
-          )
-        : [{ id: `cat-${Date.now()}`, name: nextName, slug: nextSlug }, ...current],
-    );
+    upsertCategory({
+      id: editingId ?? `cat-${Date.now()}`,
+      name: nextName,
+      slug: nextSlug,
+      imageUrl: imageUrl.trim() || null,
+    });
     closeForm();
   };
 
@@ -77,22 +79,23 @@ export const CategoriesPage = () => {
       {visibleCategories.length === 0 ? (
         <p className="catalog__empty">No Categories</p>
       ) : (
-        <div className="table-wrapper">
-          <Table headers={isAdmin ? ["Name", "Slug", ""] : ["Name", "Slug"]}>
-            {visibleCategories.map((category) => (
-              <tr key={category.id} className="products__table--body--tr">
-                <td className="products__table--body--tr--td">{category.name}</td>
-                <td className="products__table--body--tr--td">{category.slug}</td>
-                {isAdmin ? (
-                  <td className="products__table--body--tr--td">
-                    <button type="button" className="edit-btn" aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)}>
-                      <PencilIcon className="edit-btn--svg" />
-                    </button>
-                  </td>
-                ) : null}
-              </tr>
-            ))}
-          </Table>
+        <div className="cards">
+          {visibleCategories.map((category) => (
+            <CatalogCard
+              key={category.id}
+              to={`/categories/${category.id}`}
+              title={category.name}
+              text={category.slug}
+              imageUrl={category.imageUrl}
+              action={
+                isAdmin ? (
+                  <button type="button" className="edit-btn" aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)}>
+                    <PencilIcon className="edit-btn--svg" />
+                  </button>
+                ) : undefined
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -112,6 +115,10 @@ export const CategoriesPage = () => {
             <label className="modal__field">
               Slug
               <input className="modal__input" value={slug} onChange={(event) => setSlug(event.target.value)} />
+            </label>
+            <label className="modal__field">
+              Image URL
+              <input className="modal__input" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://" />
             </label>
             {formError ? <p className="modal__error">{formError}</p> : null}
             <div className="modal__actions">

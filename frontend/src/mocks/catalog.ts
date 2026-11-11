@@ -1,7 +1,14 @@
-export const categories = [
-  { id: "cat-laptops", name: "Laptops", slug: "laptops" },
-  { id: "cat-phones", name: "Phones", slug: "phones" },
-  { id: "cat-audio", name: "Audio", slug: "audio" },
+export type CatalogCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+};
+
+export const categories: CatalogCategory[] = [
+  { id: "cat-laptops", name: "Laptops", slug: "laptops", imageUrl: "https://picsum.photos/seed/laptops/640/480" },
+  { id: "cat-phones", name: "Phones", slug: "phones", imageUrl: "https://picsum.photos/seed/phones/640/480" },
+  { id: "cat-audio", name: "Audio", slug: "audio", imageUrl: null },
 ];
 
 export type CatalogProduct = {
@@ -13,6 +20,7 @@ export type CatalogProduct = {
   price: number;
   stock: number;
   isActive: boolean;
+  imageUrl: string | null;
 };
 
 export const products: CatalogProduct[] = [
@@ -25,6 +33,7 @@ export const products: CatalogProduct[] = [
     price: 1999,
     stock: 12,
     isActive: true,
+    imageUrl: "https://picsum.photos/seed/macbook/640/480",
   },
   {
     id: "prod-air",
@@ -35,6 +44,7 @@ export const products: CatalogProduct[] = [
     price: 1099,
     stock: 20,
     isActive: true,
+    imageUrl: "https://picsum.photos/seed/air/640/480",
   },
   {
     id: "prod-iphone",
@@ -45,6 +55,7 @@ export const products: CatalogProduct[] = [
     price: 799,
     stock: 30,
     isActive: true,
+    imageUrl: "https://picsum.photos/seed/iphone/640/480",
   },
   {
     id: "prod-airpods",
@@ -55,6 +66,7 @@ export const products: CatalogProduct[] = [
     price: 249,
     stock: 40,
     isActive: false,
+    imageUrl: null,
   },
 ];
 

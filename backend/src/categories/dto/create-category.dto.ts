@@ -1,4 +1,4 @@
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUrl, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
@@ -13,4 +13,9 @@ export class CreateCategoryDto {
     message: 'Slug must contain lowercase letters, numbers and hyphens',
   })
   slug!: string;
+
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  @MaxLength(500)
+  imageUrl?: string;
 }

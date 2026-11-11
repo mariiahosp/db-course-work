@@ -4,10 +4,11 @@ import ChevronUpIcon from "../../assets/Arrow-up.svg?react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
 import { Dropdown } from "../../components/DropDown/DropDown";
 import { Input } from "../../components/Input/Input";
+import { CatalogCard } from "../../components/CatalogCard/CatalogCard";
 import { Modal } from "../../components/Modal/Modal";
-import { Table } from "../../components/Table/Table";
-import { categories, products as seedProducts, type CatalogProduct } from "../../mocks/catalog";
+import { type CatalogProduct } from "../../mocks/catalog";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useCatalogStore } from "../../store/useCatalogStore";
 import { RoleEnum } from "../../types/user";
 import "./ProductsPage.scss";
 
@@ -20,27 +21,31 @@ type ProductDraft = {
   category: string;
   price: string;
   stock: string;
+  imageUrl: string;
   isActive: boolean;
 };
 
-const emptyDraft: ProductDraft = {
+const emptyDraft = (category: string): ProductDraft => ({
   name: "",
   sku: "",
   description: "",
-  category: categories[0]?.name ?? "",
+  category,
   price: "",
   stock: "",
+  imageUrl: "",
   isActive: true,
-};
+});
 
 export const ProductsPage = () => {
   const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
+  const items = useCatalogStore((state) => state.products);
+  const categories = useCatalogStore((state) => state.categories);
+  const upsertProduct = useCatalogStore((state) => state.upsertProduct);
   const [query, setQuery] = useState("");
   const [priceSort, setPriceSort] = useState<PriceSort>("none");
-  const [items, setItems] = useState<CatalogProduct[]>(seedProducts);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
+  const [draft, setDraft] = useState<ProductDraft>(emptyDraft(categories[0]?.name ?? ""));
   const [formError, setFormError] = useState("");
 
   const visibleProducts = [...items]
@@ -57,7 +62,7 @@ export const ProductsPage = () => {
 
   const openCreate = () => {
     setEditingId(null);
-    setDraft(emptyDraft);
+    setDraft(emptyDraft(categories[0]?.name ?? ""));
     setFormError("");
     setIsFormOpen(true);
   };
@@ -71,6 +76,7 @@ export const ProductsPage = () => {
       category: product.category,
       price: String(product.price),
       stock: String(product.stock),
+      imageUrl: product.imageUrl ?? "",
       isActive: product.isActive,
     });
     setFormError("");
@@ -94,6 +100,7 @@ export const ProductsPage = () => {
       return;
     }
 
+    const imageUrl = draft.imageUrl.trim();
     const next: CatalogProduct = {
       id: editingId ?? `prod-${Date.now()}`,
       name: draft.name.trim(),
@@ -102,12 +109,11 @@ export const ProductsPage = () => {
       category: draft.category,
       price,
       stock,
+      imageUrl: imageUrl || null,
       isActive: draft.isActive,
     };
 
-    setItems((current) =>
-      editingId ? current.map((product) => (product.id === editingId ? next : product)) : [next, ...current],
-    );
+    upsertProduct(next);
     closeForm();
   };
 
@@ -133,26 +139,24 @@ export const ProductsPage = () => {
       {visibleProducts.length === 0 ? (
         <p className="catalog__empty">No Products</p>
       ) : (
-        <div className="table-wrapper">
-          <Table headers={isAdmin ? ["Name", "SKU", "Category", "Price", "Stock", "Active", ""] : ["Name", "SKU", "Category", "Price", "Stock", "Active"]}>
-            {visibleProducts.map((product) => (
-              <tr key={product.id} className="products__table--body--tr">
-                <td className="products__table--body--tr--td">{product.name}</td>
-                <td className="products__table--body--tr--td">{product.sku}</td>
-                <td className="products__table--body--tr--td">{product.category}</td>
-                <td className="products__table--body--tr--td">${product.price}</td>
-                <td className="products__table--body--tr--td">{product.stock}</td>
-                <td className="products__table--body--tr--td">{product.isActive ? "Yes" : "No"}</td>
-                {isAdmin ? (
-                  <td className="products__table--body--tr--td">
-                    <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`} onClick={() => openEdit(product)}>
-                      <PencilIcon className="edit-btn--svg" />
-                    </button>
-                  </td>
-                ) : null}
-              </tr>
-            ))}
-          </Table>
+        <div className="cards">
+          {visibleProducts.map((product) => (
+            <CatalogCard
+              key={product.id}
+              to={`/products/${product.id}`}
+              title={product.name}
+              text={product.description}
+              imageUrl={product.imageUrl}
+              meta={`$${product.price}`}
+              action={
+                isAdmin ? (
+                  <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`} onClick={() => openEdit(product)}>
+                    <PencilIcon className="edit-btn--svg" />
+                  </button>
+                ) : undefined
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -186,6 +190,10 @@ export const ProductsPage = () => {
             <label className="modal__field">
               Description
               <textarea className="modal__textarea" value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
+            </label>
+            <label className="modal__field">
+              Image URL
+              <input className="modal__input" value={draft.imageUrl} onChange={(event) => setDraft({ ...draft, imageUrl: event.target.value })} placeholder="https://" />
             </label>
             <label className="modal__field">
               Price

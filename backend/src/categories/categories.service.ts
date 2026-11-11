@@ -62,7 +62,7 @@ export class CategoriesService {
   }
 
   async update(id: string, dto: UpdateCategoryDto) {
-    if (dto.name === undefined && dto.slug === undefined) {
+    if (dto.name === undefined && dto.slug === undefined && dto.imageUrl === undefined) {
       throw new BadRequestException('No fields to update');
     }
 

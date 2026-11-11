@@ -8,6 +8,8 @@ import { RegisterPage } from './pages/RegisterPage/RegisterPage.tsx'
 import { UsersPage } from './pages/UsersPage/UsersPage.tsx'
 import { CategoriesPage } from './pages/CategoriesPage/CategoriesPage.tsx'
 import { ProductsPage } from './pages/ProductsPage/ProductsPage.tsx'
+import { ProductPage } from './pages/ProductPage/ProductPage.tsx'
+import { CategoryPage } from './pages/CategoryPage/CategoryPage.tsx'
 import { OrdersPage } from './pages/OrdersPage/OrdersPage.tsx'
 import { ProfilePage } from './pages/ProfilePage/ProfilePage.tsx'
 import { UserProfilePage } from './pages/UserProfilePage/UserProfilePage.tsx'
@@ -26,11 +28,13 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<RequireAuth />}>
             <Route path="users/:id" element={<UserProfilePage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="products/:id" element={<ProductPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="categories/:id" element={<CategoryPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route element={<RequireAdmin />}>
               <Route path="users" element={<UsersPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
             </Route>
           </Route>
           <Route path="*" element={<HomeRedirect />} />
