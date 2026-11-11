@@ -5,6 +5,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 
 const orderInclude = {
+  user: { select: { id: true, email: true, name: true } },
   items: {
     include: {
       product: { select: { id: true, name: true, sku: true } },
@@ -17,6 +18,14 @@ const orderInclude = {
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) { }
+
+  async findAll(userId: string, role: string) {
+    return this.prisma.order.findMany({
+      where: role === 'ADMIN' ? {} : { userId },
+      include: orderInclude,
+      orderBy: { createdAt: 'desc' },
+    })
+  }
 
   async create(userId: string, dto: CreateOrderDto) {
     const productIds = dto.items.map((item) => item.productId);

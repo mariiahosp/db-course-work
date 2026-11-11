@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
 import { Roles } from '../auth/roles.decorator';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -9,6 +9,11 @@ type AuthRequest = Request & { user: { id: string, role: string } };
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) { }
+
+  @Get()
+  findAll(@Req() request: AuthRequest) {
+    return this.ordersService.findAll(request.user.id, request.user.role)
+  }
 
   @Post()
   create(@Req() request: AuthRequest, @Body() dto: CreateOrderDto) {
