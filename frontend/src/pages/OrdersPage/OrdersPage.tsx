@@ -2,9 +2,12 @@ import { useState } from "react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
 import { Dropdown } from "../../components/DropDown/DropDown";
 import { Input } from "../../components/Input/Input";
+import { Modal } from "../../components/Modal/Modal";
 import { Table } from "../../components/Table/Table";
-import { orders } from "../../mocks/catalog";
+import { orders as seedOrders } from "../../mocks/catalog";
 import "../ProductsPage/ProductsPage.scss";
+
+type Order = (typeof seedOrders)[number];
 
 const statusLabel: Record<string, string> = {
   PLACED: "Placed",
@@ -16,17 +19,49 @@ const statusLabel: Record<string, string> = {
   FAILED: "Failed",
 };
 
+const nextDelivery: Record<string, string[]> = {
+  PLACED: ["IN_TRANSIT", "CANCELLED"],
+  IN_TRANSIT: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
 export const OrdersPage = () => {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [payment, setPayment] = useState("all");
+  const [items, setItems] = useState<Order[]>(seedOrders);
+  const [editing, setEditing] = useState<Order | null>(null);
+  const [delivery, setDelivery] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("");
 
-  const visibleOrders = orders.filter((order) => {
+  const visibleOrders = items.filter((order) => {
     const matchesQuery = order.customer.toLowerCase().includes(query.trim().toLowerCase());
     const matchesStatus = status === "all" || order.status === status;
     const matchesPayment = payment === "all" || order.paymentStatus === payment;
     return matchesQuery && matchesStatus && matchesPayment;
   });
+
+  const openEdit = (order: Order) => {
+    setEditing(order);
+    setDelivery(order.status);
+    setPaymentStatus(order.paymentStatus);
+  };
+
+  const saveOrder = () => {
+    if (!editing) {
+      return;
+    }
+
+    setItems((current) =>
+      current.map((order) =>
+        order.id === editing.id ? { ...order, status: delivery, paymentStatus } : order,
+      ),
+    );
+    setEditing(null);
+  };
+
+  const deliveryChoices = editing ? [editing.status, ...nextDelivery[editing.status]] : [];
 
   return (
     <section className="catalog">
@@ -69,7 +104,7 @@ export const OrdersPage = () => {
                 <td className="products__table--body--tr--td">${order.totalAmount}</td>
                 <td className="products__table--body--tr--td">{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td className="products__table--body--tr--td">
-                  <button type="button" className="edit-btn" aria-label={`Edit order ${order.id}`}>
+                  <button type="button" className="edit-btn" aria-label={`Edit order ${order.id}`} onClick={() => openEdit(order)}>
                     <PencilIcon className="edit-btn--svg" />
                   </button>
                 </td>
@@ -78,6 +113,47 @@ export const OrdersPage = () => {
           </Table>
         </div>
       )}
+
+      {editing ? (
+        <Modal title={`Order ${editing.id}`} onClose={() => setEditing(null)}>
+          <form
+            className="modal__form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveOrder();
+            }}
+          >
+            <label className="modal__field">
+              Delivery
+              <select className="modal__select" value={delivery} onChange={(event) => setDelivery(event.target.value)}>
+                {deliveryChoices.map((value) => (
+                  <option key={value} value={value}>
+                    {statusLabel[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="modal__field">
+              Payment
+              <select className="modal__select" value={paymentStatus} onChange={(event) => setPaymentStatus(event.target.value)}>
+                {["PENDING", "PAID", "FAILED"].map((value) => (
+                  <option key={value} value={value}>
+                    {statusLabel[value]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="modal__actions">
+              <button type="button" className="modal__cancel" onClick={() => setEditing(null)}>
+                Cancel
+              </button>
+              <button type="submit" className="modal__save">
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
     </section>
   );
 };

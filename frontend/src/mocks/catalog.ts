@@ -4,11 +4,23 @@ export const categories = [
   { id: "cat-audio", name: "Audio", slug: "audio" },
 ];
 
-export const products = [
+export type CatalogProduct = {
+  id: string;
+  sku: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  stock: number;
+  isActive: boolean;
+};
+
+export const products: CatalogProduct[] = [
   {
     id: "prod-mbp",
     sku: "MBP-14-M3",
     name: "MacBook Pro 14",
+    description: "14-inch laptop with the M3 chip",
     category: "Laptops",
     price: 1999,
     stock: 12,
@@ -18,6 +30,7 @@ export const products = [
     id: "prod-air",
     sku: "MBA-13-M2",
     name: "MacBook Air 13",
+    description: "Light laptop with a long battery life",
     category: "Laptops",
     price: 1099,
     stock: 20,
@@ -27,6 +40,7 @@ export const products = [
     id: "prod-iphone",
     sku: "IP15-128",
     name: "iPhone 15",
+    description: "128 GB smartphone",
     category: "Phones",
     price: 799,
     stock: 30,
@@ -36,6 +50,7 @@ export const products = [
     id: "prod-airpods",
     sku: "APP-2",
     name: "AirPods Pro 2",
+    description: "Noise-cancelling earbuds",
     category: "Audio",
     price: 249,
     stock: 40,

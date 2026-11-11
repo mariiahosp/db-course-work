@@ -4,17 +4,43 @@ import ChevronUpIcon from "../../assets/Arrow-up.svg?react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
 import { Dropdown } from "../../components/DropDown/DropDown";
 import { Input } from "../../components/Input/Input";
+import { Modal } from "../../components/Modal/Modal";
 import { Table } from "../../components/Table/Table";
-import { products } from "../../mocks/catalog";
+import { categories, products as seedProducts, type CatalogProduct } from "../../mocks/catalog";
 import "./ProductsPage.scss";
 
 type PriceSort = "lowToHigh" | "highToLow" | "none";
 
+type ProductDraft = {
+  name: string;
+  sku: string;
+  description: string;
+  category: string;
+  price: string;
+  stock: string;
+  isActive: boolean;
+};
+
+const emptyDraft: ProductDraft = {
+  name: "",
+  sku: "",
+  description: "",
+  category: categories[0]?.name ?? "",
+  price: "",
+  stock: "",
+  isActive: true,
+};
+
 export const ProductsPage = () => {
   const [query, setQuery] = useState("");
   const [priceSort, setPriceSort] = useState<PriceSort>("none");
+  const [items, setItems] = useState<CatalogProduct[]>(seedProducts);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [draft, setDraft] = useState<ProductDraft>(emptyDraft);
+  const [formError, setFormError] = useState("");
 
-  const visibleProducts = [...products]
+  const visibleProducts = [...items]
     .filter((product) => product.name.toLowerCase().includes(query.trim().toLowerCase()))
     .sort((left, right) => {
       if (priceSort === "lowToHigh") {
@@ -26,11 +52,67 @@ export const ProductsPage = () => {
       return 0;
     });
 
+  const openCreate = () => {
+    setEditingId(null);
+    setDraft(emptyDraft);
+    setFormError("");
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (product: CatalogProduct) => {
+    setEditingId(product.id);
+    setDraft({
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
+      category: product.category,
+      price: String(product.price),
+      stock: String(product.stock),
+      isActive: product.isActive,
+    });
+    setFormError("");
+    setIsFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setFormError("");
+  };
+
+  const saveProduct = () => {
+    const price = Number(draft.price);
+    const stock = Number(draft.stock);
+    if (!draft.name.trim() || !draft.sku.trim() || !draft.description.trim() || !draft.category) {
+      setFormError("Name, SKU, description and category are required.");
+      return;
+    }
+    if (!Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
+      setFormError("Price must be greater than 0 and stock must be a whole number.");
+      return;
+    }
+
+    const next: CatalogProduct = {
+      id: editingId ?? `prod-${Date.now()}`,
+      name: draft.name.trim(),
+      sku: draft.sku.trim(),
+      description: draft.description.trim(),
+      category: draft.category,
+      price,
+      stock,
+      isActive: draft.isActive,
+    };
+
+    setItems((current) =>
+      editingId ? current.map((product) => (product.id === editingId ? next : product)) : [next, ...current],
+    );
+    closeForm();
+  };
+
   return (
     <section className="catalog">
       <div className="catalog__head">
         <Input query={query} setQuery={setQuery} />
-        <button type="button" className="catalog__add">
+        <button type="button" className="catalog__add" onClick={openCreate}>
           Add Product
         </button>
         <Dropdown
@@ -57,7 +139,7 @@ export const ProductsPage = () => {
                 <td className="products__table--body--tr--td">{product.stock}</td>
                 <td className="products__table--body--tr--td">{product.isActive ? "Yes" : "No"}</td>
                 <td className="products__table--body--tr--td">
-                  <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`}>
+                  <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`} onClick={() => openEdit(product)}>
                     <PencilIcon className="edit-btn--svg" />
                   </button>
                 </td>
@@ -66,6 +148,62 @@ export const ProductsPage = () => {
           </Table>
         </div>
       )}
+
+      {isFormOpen ? (
+        <Modal title={editingId ? "Edit product" : "New product"} onClose={closeForm}>
+          <form
+            className="modal__form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              saveProduct();
+            }}
+          >
+            <label className="modal__field">
+              Name
+              <input className="modal__input" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} />
+            </label>
+            <label className="modal__field">
+              SKU
+              <input className="modal__input" value={draft.sku} onChange={(event) => setDraft({ ...draft, sku: event.target.value })} />
+            </label>
+            <label className="modal__field">
+              Category
+              <select className="modal__select" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="modal__field">
+              Description
+              <textarea className="modal__textarea" value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
+            </label>
+            <label className="modal__field">
+              Price
+              <input className="modal__input" type="number" min="0.01" step="0.01" value={draft.price} onChange={(event) => setDraft({ ...draft, price: event.target.value })} />
+            </label>
+            <label className="modal__field">
+              Stock
+              <input className="modal__input" type="number" min="0" step="1" value={draft.stock} onChange={(event) => setDraft({ ...draft, stock: event.target.value })} />
+            </label>
+            <label className="modal__check">
+              <input type="checkbox" checked={draft.isActive} onChange={(event) => setDraft({ ...draft, isActive: event.target.checked })} />
+              Active
+            </label>
+            {formError ? <p className="modal__error">{formError}</p> : null}
+            <div className="modal__actions">
+              <button type="button" className="modal__cancel" onClick={closeForm}>
+                Cancel
+              </button>
+              <button type="submit" className="modal__save">
+                Save
+              </button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
     </section>
   );
 };

@@ -5,6 +5,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 
 export const Header = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
   return (
@@ -43,7 +44,7 @@ export const Header = () => {
             </NavLink>
             <p className="header__list--link" onClick={() => void logout()}>Logout</p>
           <NavLink 
-            to='/profile' 
+            to={user ? `/users/${user.id}` : "/profile"} 
             className={({ isActive }) => (isActive ? 'header__list--link active-link profile active-profile' : 'header__list--link profile')}
           >
             My Profile
