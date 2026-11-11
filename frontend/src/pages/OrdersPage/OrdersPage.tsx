@@ -5,6 +5,8 @@ import { Input } from "../../components/Input/Input";
 import { Modal } from "../../components/Modal/Modal";
 import { Table } from "../../components/Table/Table";
 import { orders as seedOrders } from "../../mocks/catalog";
+import { useAuthStore } from "../../store/useAuthStore";
+import { RoleEnum } from "../../types/user";
 import "../ProductsPage/ProductsPage.scss";
 
 type Order = (typeof seedOrders)[number];
@@ -27,6 +29,7 @@ const nextDelivery: Record<string, string[]> = {
 };
 
 export const OrdersPage = () => {
+  const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [payment, setPayment] = useState("all");
@@ -94,7 +97,7 @@ export const OrdersPage = () => {
         <p className="catalog__empty">No Orders</p>
       ) : (
         <div className="table-wrapper">
-          <Table headers={["ID", "Customer", "Delivery", "Payment", "Total", "Created", ""]}>
+          <Table headers={isAdmin ? ["ID", "Customer", "Delivery", "Payment", "Total", "Created", ""] : ["ID", "Customer", "Delivery", "Payment", "Total", "Created"]}>
             {visibleOrders.map((order) => (
               <tr key={order.id} className="products__table--body--tr">
                 <td className="products__table--body--tr--td">{order.id}</td>
@@ -103,11 +106,13 @@ export const OrdersPage = () => {
                 <td className="products__table--body--tr--td">{statusLabel[order.paymentStatus]}</td>
                 <td className="products__table--body--tr--td">${order.totalAmount}</td>
                 <td className="products__table--body--tr--td">{new Date(order.createdAt).toLocaleDateString()}</td>
-                <td className="products__table--body--tr--td">
-                  <button type="button" className="edit-btn" aria-label={`Edit order ${order.id}`} onClick={() => openEdit(order)}>
-                    <PencilIcon className="edit-btn--svg" />
-                  </button>
-                </td>
+                {isAdmin ? (
+                  <td className="products__table--body--tr--td">
+                    <button type="button" className="edit-btn" aria-label={`Edit order ${order.id}`} onClick={() => openEdit(order)}>
+                      <PencilIcon className="edit-btn--svg" />
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </Table>

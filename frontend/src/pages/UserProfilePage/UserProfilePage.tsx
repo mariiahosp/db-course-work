@@ -10,7 +10,7 @@ export const UserProfilePage = () => {
   const users = useUsersStore((state) => state.users);
   const listed = users.find((item) => item.id === id) ?? mockUsers.find((item) => item.id === id);
   const user = listed ?? (me?.id === id
-    ? { id: me.id, email: me.email, name: me.name, role: me.role, createdAt: "", updatedAt: "" }
+    ? { id: me?.id, email: me?.email, name: me?.name, role: me?.role, createdAt: "", updatedAt: "" }
     : undefined);
   const isMine = Boolean(
     me && user && (me.id === user.id || me.email.toLowerCase() === user.email.toLowerCase()),
@@ -54,9 +54,11 @@ export const UserProfilePage = () => {
             <span>{new Date(user.updatedAt).toLocaleString()}</span>
           </div>
         ) : null}
-        <Link to="/users" className="profile-page__back">
-          Back to users
-        </Link>
+        {user.role === 'ADMIN' && (
+          <Link to="/users" className="profile-page__back">
+            Back to users
+          </Link>
+        )}
       </div>
     </section>
   );

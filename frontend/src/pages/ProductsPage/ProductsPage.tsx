@@ -7,6 +7,8 @@ import { Input } from "../../components/Input/Input";
 import { Modal } from "../../components/Modal/Modal";
 import { Table } from "../../components/Table/Table";
 import { categories, products as seedProducts, type CatalogProduct } from "../../mocks/catalog";
+import { useAuthStore } from "../../store/useAuthStore";
+import { RoleEnum } from "../../types/user";
 import "./ProductsPage.scss";
 
 type PriceSort = "lowToHigh" | "highToLow" | "none";
@@ -32,6 +34,7 @@ const emptyDraft: ProductDraft = {
 };
 
 export const ProductsPage = () => {
+  const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
   const [query, setQuery] = useState("");
   const [priceSort, setPriceSort] = useState<PriceSort>("none");
   const [items, setItems] = useState<CatalogProduct[]>(seedProducts);
@@ -112,9 +115,11 @@ export const ProductsPage = () => {
     <section className="catalog">
       <div className="catalog__head">
         <Input query={query} setQuery={setQuery} />
-        <button type="button" className="catalog__add" onClick={openCreate}>
-          Add Product
-        </button>
+        {isAdmin ? (
+          <button type="button" className="catalog__add" onClick={openCreate}>
+            Add Product
+          </button>
+        ) : null}
         <Dropdown
           label="Price From"
           onSelect={(value) => setPriceSort(value as PriceSort)}
@@ -129,7 +134,7 @@ export const ProductsPage = () => {
         <p className="catalog__empty">No Products</p>
       ) : (
         <div className="table-wrapper">
-          <Table headers={["Name", "SKU", "Category", "Price", "Stock", "Active", ""]}>
+          <Table headers={isAdmin ? ["Name", "SKU", "Category", "Price", "Stock", "Active", ""] : ["Name", "SKU", "Category", "Price", "Stock", "Active"]}>
             {visibleProducts.map((product) => (
               <tr key={product.id} className="products__table--body--tr">
                 <td className="products__table--body--tr--td">{product.name}</td>
@@ -138,11 +143,13 @@ export const ProductsPage = () => {
                 <td className="products__table--body--tr--td">${product.price}</td>
                 <td className="products__table--body--tr--td">{product.stock}</td>
                 <td className="products__table--body--tr--td">{product.isActive ? "Yes" : "No"}</td>
-                <td className="products__table--body--tr--td">
-                  <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`} onClick={() => openEdit(product)}>
-                    <PencilIcon className="edit-btn--svg" />
-                  </button>
-                </td>
+                {isAdmin ? (
+                  <td className="products__table--body--tr--td">
+                    <button type="button" className="edit-btn" aria-label={`Edit ${product.name}`} onClick={() => openEdit(product)}>
+                      <PencilIcon className="edit-btn--svg" />
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </Table>

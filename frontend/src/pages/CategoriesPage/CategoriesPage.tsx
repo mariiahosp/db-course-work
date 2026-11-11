@@ -4,11 +4,14 @@ import { Input } from "../../components/Input/Input";
 import { Modal } from "../../components/Modal/Modal";
 import { Table } from "../../components/Table/Table";
 import { categories as seedCategories } from "../../mocks/catalog";
+import { useAuthStore } from "../../store/useAuthStore";
+import { RoleEnum } from "../../types/user";
 import "../ProductsPage/ProductsPage.scss";
 
 type Category = (typeof seedCategories)[number];
 
 export const CategoriesPage = () => {
+  const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Category[]>(seedCategories);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,25 +67,29 @@ export const CategoriesPage = () => {
     <section className="catalog">
       <div className="catalog__head">
         <Input query={query} setQuery={setQuery} placeholder="Type category name" />
-        <button type="button" className="catalog__add" onClick={openCreate}>
-          Add Category
-        </button>
+        {isAdmin ? (
+          <button type="button" className="catalog__add" onClick={openCreate}>
+            Add Category
+          </button>
+        ) : null}
       </div>
 
       {visibleCategories.length === 0 ? (
         <p className="catalog__empty">No Categories</p>
       ) : (
         <div className="table-wrapper">
-          <Table headers={["Name", "Slug", ""]}>
+          <Table headers={isAdmin ? ["Name", "Slug", ""] : ["Name", "Slug"]}>
             {visibleCategories.map((category) => (
               <tr key={category.id} className="products__table--body--tr">
                 <td className="products__table--body--tr--td">{category.name}</td>
                 <td className="products__table--body--tr--td">{category.slug}</td>
-                <td className="products__table--body--tr--td">
-                  <button type="button" className="edit-btn" aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)}>
-                    <PencilIcon className="edit-btn--svg" />
-                  </button>
-                </td>
+                {isAdmin ? (
+                  <td className="products__table--body--tr--td">
+                    <button type="button" className="edit-btn" aria-label={`Edit ${category.name}`} onClick={() => openEdit(category)}>
+                      <PencilIcon className="edit-btn--svg" />
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
           </Table>

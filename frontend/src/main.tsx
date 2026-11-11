@@ -11,7 +11,7 @@ import { ProductsPage } from './pages/ProductsPage/ProductsPage.tsx'
 import { OrdersPage } from './pages/OrdersPage/OrdersPage.tsx'
 import { ProfilePage } from './pages/ProfilePage/ProfilePage.tsx'
 import { UserProfilePage } from './pages/UserProfilePage/UserProfilePage.tsx'
-import { GuestOnly, HomeRedirect, RequireAuth } from './routes/RequireAuth.tsx'
+import { GuestOnly, HomeRedirect, RequireAdmin, RequireAuth } from './routes/RequireAuth.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -24,12 +24,14 @@ createRoot(document.getElementById('root')!).render(
             <Route path="register" element={<RegisterPage />} />
           </Route>
           <Route element={<RequireAuth />}>
-            <Route path="users" element={<UsersPage />} />
             <Route path="users/:id" element={<UserProfilePage />} />
-            <Route path="categories" element={<CategoriesPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route element={<RequireAdmin />}>
+              <Route path="users" element={<UsersPage />} />
+              <Route path="categories" element={<CategoriesPage />} />
+            </Route>
           </Route>
           <Route path="*" element={<HomeRedirect />} />
         </Route>

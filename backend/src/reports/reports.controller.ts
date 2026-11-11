@@ -1,19 +1,15 @@
-import { Controller, ForbiddenException, Get, Query, Req } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { Roles } from '../auth/roles.decorator';
 import { ReportsService } from './reports.service';
 import { QueryRevenueDto } from './dto/query-revenue.dto';
-
-type AuthRequest = Request & { user: { id: string; role: string } };
 
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) { }
-  
-  @Get('revenue')
-  revenue(@Req() request: AuthRequest, @Query() query: QueryRevenueDto) {
-    if (request.user.role !== 'ADMIN') {
-      throw new ForbiddenException('Only admins can access this resource')
-    }
 
+  @Roles('ADMIN')
+  @Get('revenue')
+  revenue(@Query() query: QueryRevenueDto) {
     return this.reportsService.revenue(query);
   }
 }

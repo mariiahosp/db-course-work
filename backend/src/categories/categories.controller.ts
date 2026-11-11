@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Roles } from '../auth/roles.decorator';
 import { CategoriesService } from './categories.service';
 import { QueryCategoriesDto } from './dto/query-category.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -18,11 +19,13 @@ export class CategoriesController {
     return this.categoriesService.findOne(id);
   }
 
+  @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
 
+  @Roles('ADMIN')
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);

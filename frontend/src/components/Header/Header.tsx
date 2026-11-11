@@ -2,10 +2,12 @@ import "./Header.scss";
 import HeaderIcon from "../../assets/headerIcon.svg?react";
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import { RoleEnum } from "../../types/user";
 
 export const Header = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === RoleEnum.ADMIN;
   const logout = useAuthStore((state) => state.logout);
 
   return (
@@ -18,18 +20,22 @@ export const Header = () => {
 
         {isAuthenticated ? (
           <div className="header__list">
-          <NavLink 
-            to='/users' 
-            className={({ isActive }) => (isActive ? 'header__list--link active-link' : 'header__list--link')}
-          >
-            Users
-          </NavLink>
-          <NavLink
-            to="/categories"
-            className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
-          >
-            Categories
-          </NavLink>
+          {isAdmin ? (
+            <NavLink
+              to="/users"
+              className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
+            >
+              Users
+            </NavLink>
+          ) : null}
+          {isAdmin ? (
+            <NavLink
+              to="/categories"
+              className={({ isActive }) => (isActive ? "header__list--link active-link" : "header__list--link")}
+            >
+              Categories
+            </NavLink>
+          ) : null}
           <NavLink 
             to='/products' 
             className={({ isActive }) => (isActive ? 'header__list--link active-link' : 'header__list--link')}

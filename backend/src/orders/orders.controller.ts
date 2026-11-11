@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, ForbiddenException, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import { Roles } from '../auth/roles.decorator';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
@@ -14,28 +15,18 @@ export class OrdersController {
     return this.ordersService.create(request.user.id, dto);
   }
 
+  @Roles('ADMIN')
   @Patch(':id/status')
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() request: AuthRequest,
     @Body() dto: UpdateOrderStatusDto,
   ) {
-    if (request.user.role !== 'ADMIN') {
-      throw new ForbiddenException('Only admins can update order status');
-    }
-
     return this.ordersService.updateStatus(id, dto);
   }
 
+  @Roles('ADMIN')
   @Delete(':id')
-  remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Req() request: AuthRequest,
-  ) {
-    if (request.user.role !== 'ADMIN') {
-      throw new ForbiddenException('Only admins can delete orders');
-    }
-
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersService.remove(id);
   }
 }
