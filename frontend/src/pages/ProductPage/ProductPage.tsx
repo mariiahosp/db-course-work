@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import "./ProductPage.scss";
@@ -5,11 +6,18 @@ import "./ProductPage.scss";
 export const ProductPage = () => {
   const { id } = useParams();
   const product = useCatalogStore((state) => state.products.find((item) => item.id === id));
+  const error = useCatalogStore((state) => state.error);
+  const fetchProduct = useCatalogStore((state) => state.fetchProduct);
+
+  useEffect(() => {
+    if (!id) return;
+    void fetchProduct(id);
+  }, [id, fetchProduct]);
 
   if (!product) {
     return (
       <section className="detail">
-        <p className="detail__missing">Product not found.</p>
+        <p className="detail__missing">{error ?? "Loading..."}</p>
         <Link to="/products" className="detail__back">
           Back to products
         </Link>
@@ -39,7 +47,7 @@ export const ProductPage = () => {
             </div>
             <div>
               <dt>Category</dt>
-              <dd>{product.category}</dd>
+              <dd>{product.category.name}</dd>
             </div>
             <div>
               <dt>Stock</dt>

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { CatalogCard } from "../../components/CatalogCard/CatalogCard";
 import { useCatalogStore } from "../../store/useCatalogStore";
@@ -8,15 +8,24 @@ export const CategoryPage = () => {
   const { id } = useParams();
   const category = useCatalogStore((state) => state.categories.find((item) => item.id === id));
   const catalogProducts = useCatalogStore((state) => state.products);
+  const error = useCatalogStore((state) => state.error);
+  const fetchCategory = useCatalogStore((state) => state.fetchCategory);
+  const fetchProducts = useCatalogStore((state) => state.fetchProducts);
   const products = useMemo(
-    () => catalogProducts.filter((item) => item.category === category?.name),
-    [catalogProducts, category?.name],
+    () => catalogProducts.filter((item) => item.categoryId === id),
+    [catalogProducts, id],
   );
+
+  useEffect(() => {
+    if (!id) return;
+    void fetchCategory(id);
+    void fetchProducts(100, 0);
+  }, [id, fetchCategory, fetchProducts]);
 
   if (!category) {
     return (
       <section className="detail">
-        <p className="detail__missing">Category not found.</p>
+        <p className="detail__missing">{error ?? "Loading..."}</p>
         <Link to="/categories" className="detail__back">
           Back to categories
         </Link>

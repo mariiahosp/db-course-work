@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { mockUsers } from "../../mocks/users";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useUsersStore } from "../../store/useUsersStore";
 import "../ProfilePage/ProfilePage.scss";
@@ -7,11 +7,15 @@ import "../ProfilePage/ProfilePage.scss";
 export const UserProfilePage = () => {
   const { id } = useParams();
   const me = useAuthStore((state) => state.user);
-  const users = useUsersStore((state) => state.users);
-  const listed = users.find((item) => item.id === id) ?? mockUsers.find((item) => item.id === id);
-  const user = listed ?? (me?.id === id
-    ? { id: me?.id, email: me?.email, name: me?.name, role: me?.role, createdAt: "", updatedAt: "" }
-    : undefined);
+  const selectedUser = useUsersStore((state) => state.selectedUser);
+  const error = useUsersStore((state) => state.error);
+  const fetchUser = useUsersStore((state) => state.fetchUser);
+  const user = selectedUser?.id === id ? selectedUser : undefined;
+
+  useEffect(() => {
+    if (!id) return;
+    void fetchUser(id);
+  }, [id, fetchUser]);
   const isMine = Boolean(
     me && user && (me.id === user.id || me.email.toLowerCase() === user.email.toLowerCase()),
   );
@@ -19,7 +23,7 @@ export const UserProfilePage = () => {
   if (!user) {
     return (
       <section className="profile-page">
-        <p className="profile-page__missing">User not found.</p>
+        <p className="profile-page__missing">{error || "Loading..."}</p>
         <Link to="/users" className="profile-page__back">
           Back to users
         </Link>

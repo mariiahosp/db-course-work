@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChevronDownIcon from "../../assets/Arrow-down.svg?react";
 import ChevronUpIcon from "../../assets/Arrow-up.svg?react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
@@ -6,11 +6,11 @@ import { Dropdown } from "../../components/DropDown/DropDown";
 import { Input } from "../../components/Input/Input";
 import { CatalogCard } from "../../components/CatalogCard/CatalogCard";
 import { Modal } from "../../components/Modal/Modal";
-import { type CatalogProduct } from "../../mocks/catalog";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import { RoleEnum } from "../../types/user";
 import "./ProductsPage.scss";
+import type { Product } from "../../types/product";
 
 type PriceSort = "lowToHigh" | "highToLow" | "none";
 
@@ -18,18 +18,18 @@ type ProductDraft = {
   name: string;
   sku: string;
   description: string;
-  category: string;
+  categoryId: string;
   price: string;
   stock: string;
   imageUrl: string;
   isActive: boolean;
 };
 
-const emptyDraft = (category: string): ProductDraft => ({
+const emptyDraft = (categoryId: string): ProductDraft => ({
   name: "",
   sku: "",
   description: "",
-  category,
+  categoryId,
   price: "",
   stock: "",
   imageUrl: "",
@@ -40,12 +40,15 @@ export const ProductsPage = () => {
   const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
   const items = useCatalogStore((state) => state.products);
   const categories = useCatalogStore((state) => state.categories);
-  const upsertProduct = useCatalogStore((state) => state.upsertProduct);
+  const saveProductStore = useCatalogStore((state) => state.saveProduct);
+  const fetchCategories = useCatalogStore((state) => state.fetchCategories);
+  const fetchProducts = useCatalogStore((state) => state.fetchProducts);
   const [query, setQuery] = useState("");
   const [priceSort, setPriceSort] = useState<PriceSort>("none");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingVersion, setEditingVersion] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [draft, setDraft] = useState<ProductDraft>(emptyDraft(categories[0]?.name ?? ""));
+  const [draft, setDraft] = useState<ProductDraft>(emptyDraft(categories[0]?.id ?? ""));
   const [formError, setFormError] = useState("");
 
   const visibleProducts = [...items]
@@ -62,18 +65,20 @@ export const ProductsPage = () => {
 
   const openCreate = () => {
     setEditingId(null);
-    setDraft(emptyDraft(categories[0]?.name ?? ""));
+    setEditingVersion(null);
+    setDraft(emptyDraft(categories[0]?.id ?? ""));
     setFormError("");
     setIsFormOpen(true);
   };
 
-  const openEdit = (product: CatalogProduct) => {
+  const openEdit = (product: Product) => {
     setEditingId(product.id);
+    setEditingVersion(product.version);
     setDraft({
       name: product.name,
       sku: product.sku,
       description: product.description,
-      category: product.category,
+      categoryId: product.categoryId,
       price: String(product.price),
       stock: String(product.stock),
       imageUrl: product.imageUrl ?? "",
@@ -88,10 +93,10 @@ export const ProductsPage = () => {
     setFormError("");
   };
 
-  const saveProduct = () => {
+  const saveProduct = async () => {
     const price = Number(draft.price);
     const stock = Number(draft.stock);
-    if (!draft.name.trim() || !draft.sku.trim() || !draft.description.trim() || !draft.category) {
+    if (!draft.name.trim() || !draft.sku.trim() || !draft.description.trim() || !draft.categoryId) {
       setFormError("Name, SKU, description and category are required.");
       return;
     }
@@ -100,22 +105,29 @@ export const ProductsPage = () => {
       return;
     }
 
-    const imageUrl = draft.imageUrl.trim();
-    const next: CatalogProduct = {
-      id: editingId ?? `prod-${Date.now()}`,
-      name: draft.name.trim(),
-      sku: draft.sku.trim(),
-      description: draft.description.trim(),
-      category: draft.category,
-      price,
-      stock,
-      imageUrl: imageUrl || null,
-      isActive: draft.isActive,
-    };
-
-    upsertProduct(next);
-    closeForm();
+    try {
+      await saveProductStore({
+        id: editingId ?? undefined,
+        categoryId: draft.categoryId,
+        sku: draft.sku.trim(),
+        name: draft.name.trim(),
+        description: draft.description.trim(),
+        price,
+        stock,
+        isActive: draft.isActive,
+        imageUrl: draft.imageUrl.trim() || undefined,
+        version: editingVersion ?? undefined,
+      });
+      closeForm();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Request failed");
+    }
   };
+
+  useEffect(() => {
+    void fetchCategories(100, 0);
+    void fetchProducts(100, 0);
+  }, [fetchCategories, fetchProducts]);
 
   return (
     <section className="catalog">
@@ -179,9 +191,9 @@ export const ProductsPage = () => {
             </label>
             <label className="modal__field">
               Category
-              <select className="modal__select" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
+              <select className="modal__select" value={draft.categoryId} onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.name}>
+                  <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
                 ))}

@@ -1,18 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PencilIcon from "../../assets/pencilIcon.svg?react";
 import { CatalogCard } from "../../components/CatalogCard/CatalogCard";
 import { Input } from "../../components/Input/Input";
 import { Modal } from "../../components/Modal/Modal";
-import { type CatalogCategory } from "../../mocks/catalog";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import { RoleEnum } from "../../types/user";
 import "../ProductsPage/ProductsPage.scss";
+import type { Category } from "../../types/category";
 
 export const CategoriesPage = () => {
   const isAdmin = useAuthStore((state) => state.user?.role === RoleEnum.ADMIN);
   const items = useCatalogStore((state) => state.categories);
-  const upsertCategory = useCatalogStore((state) => state.upsertCategory);
+  const saveCategoryStore = useCatalogStore((state) => state.saveCategory);
+  const fetchCategories = useCatalogStore((state) => state.fetchCategories);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -34,7 +35,7 @@ export const CategoriesPage = () => {
     setIsFormOpen(true);
   };
 
-  const openEdit = (category: CatalogCategory) => {
+  const openEdit = (category: Category) => {
     setEditingId(category.id);
     setName(category.name);
     setSlug(category.slug);
@@ -48,7 +49,7 @@ export const CategoriesPage = () => {
     setFormError("");
   };
 
-  const saveCategory = () => {
+  const saveCategory = async () => {
     const nextName = name.trim();
     const nextSlug = slug.trim();
     if (!nextName || !nextSlug) {
@@ -56,14 +57,22 @@ export const CategoriesPage = () => {
       return;
     }
 
-    upsertCategory({
-      id: editingId ?? `cat-${Date.now()}`,
-      name: nextName,
-      slug: nextSlug,
-      imageUrl: imageUrl.trim() || null,
-    });
-    closeForm();
+    try {
+      await saveCategoryStore({
+        id: editingId ?? undefined,
+        name: nextName,
+        slug: nextSlug,
+        imageUrl: imageUrl.trim() || undefined,
+      });
+      closeForm();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Request failed");
+    }
   };
+
+  useEffect(() => {
+    void fetchCategories(100, 0);
+  }, [fetchCategories]);
 
   return (
     <section className="catalog">
